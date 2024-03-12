@@ -1,3 +1,3 @@
 # Python_codes
 
-principais bibliotecas usadas: (openpyxl, pandas, pyautogui, tkinter, selenium, os)
+principais bibliotecas que já desenvolvi: (openpyxl, pandas, pyautogui, tkinter, selenium, os)
