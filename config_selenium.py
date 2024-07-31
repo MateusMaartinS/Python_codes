@@ -1,17 +1,25 @@
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
+import os
 
-# configurações para entrar no navegador já istanciado a partir do comando:
-# start chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\Selenium\ChromeTestProfile"
+def iniciar_navegador(com_debugging_remoto=True):
+    chrome_driver_path = ChromeDriverManager().install()
+    chrome_driver_executable = os.path.join(os.path.dirname(chrome_driver_path), 'chromedriver.exe')
+    
+    #print(f"ChromeDriver path: {chrome_driver_executable}")
+    if not os.path.isfile(chrome_driver_executable):
+        raise FileNotFoundError(f"O ChromeDriver não foi encontrado em {chrome_driver_executable}")
 
-remote_debugging_port = 9222
+    service = Service(executable_path=chrome_driver_executable)
+    
+    chrome_options = Options()
+    if com_debugging_remoto:
+        remote_debugging_port = 9222
+        chrome_options.add_experimental_option("debuggerAddress", f"localhost:{remote_debugging_port}")
+    
+    navegador = webdriver.Chrome(service=service, options=chrome_options)
+    return navegador
 
-chorme_options = Options()
-chorme_options.add_experimental_option("debuggerAddress",f"localhost:{remote_debugging_port}")
-
-chrome_driver_path = ChromeDriverManager().install()
-service = Service(executable_path=chrome_driver_path)
-navegador = webdriver.Chrome(service=service, options=chorme_options)
+navegador = iniciar_navegador(com_debugging_remoto=True)
