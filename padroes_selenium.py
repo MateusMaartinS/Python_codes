@@ -50,3 +50,7 @@ for i in range(10):
     Select_element.select_by_index(i)
     selecao = Select_element.options[i].text
     print(f"selecionado {selecao}")
+
+navegador.switch_to.default_content()
+iframe = navegador.find_element(By.XPATH, 'iframe Pagina')
+navegador.switch_to.frame(iframe)
