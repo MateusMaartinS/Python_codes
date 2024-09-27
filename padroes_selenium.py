@@ -1,81 +1,71 @@
-import pyautogui
-import time
-import random
-import mousekey
-import cv2
-import numpy as np
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+import os
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 
-mkey = mousekey.MouseKey()
 
-def procurar_imagem(nome_arquivo, confidence=0.4, region=None, max_tentativas=30, horizontal=0, vertical=0, acao='clicar'):
-   
-    def clicar(x, y):
-        pyautogui.click(x, y)
 
-    def coordenada(x, y):
-        print(f'Coordenadas da imagem: ({x}, {y})')
 
-    def move_mouse(
-        x,
-        y,
-        variationx=(-5, 5),
-        variationy=(-5, 5),
-        up_down=(0.2, 0.3),
-        min_variation=-10,
-        max_variation=10,
-        use_every=4,
-        sleeptime=(0.009, 0.019),
-        linear=90,
-    ):
-        mkey.left_click_xy_natural(
-            int(x) - random.randint(*variationx),
-            int(y) - random.randint(*variationy),
-            delay=random.uniform(*up_down),
-            min_variation=min_variation,
-            max_variation=max_variation,
-            use_every=use_every,
-            sleeptime=sleeptime,
-            print_coords=True,
-            percent=linear,
-        )
+# start chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\Selenium\ChromeTestProfile"
+def iniciar_navegador(com_debugging_remoto=True):
+    chrome_driver_path = ChromeDriverManager().install()
+    chrome_driver_executable = os.path.join(os.path.dirname(chrome_driver_path), 'chromedriver.exe')
     
-    acoes_validas = ['clicar', 'mover_clicar']
+    #print(f"ChromeDriver path: {chrome_driver_executable}")
+    if not os.path.isfile(chrome_driver_executable):
+        raise FileNotFoundError(f"O ChromeDriver não foi encontrado em {chrome_driver_executable}")
 
-    if acao not in acoes_validas:
-        raise ValueError(f"Ação inválida: '{acao}'. Escolha entre {acoes_validas}.")
+    service = Service(executable_path=chrome_driver_executable)
+    
+    chrome_options = Options()
+    if com_debugging_remoto:
+        remote_debugging_port = 9222
+        chrome_options.add_experimental_option("debuggerAddress", f"localhost:{remote_debugging_port}")
+    
+    navegador = webdriver.Chrome(service=service, options=chrome_options)
+    return navegador
 
-    tentativas = 0
-
-    img_needle = cv2.imread(nome_arquivo, cv2.IMREAD_COLOR)
-
-    if img_needle is None:
-        raise FileNotFoundError(f"Imagem '{nome_arquivo}' não encontrada.")
-
-    while tentativas < max_tentativas:
-        tentativas += 1
-
-        screenshot = pyautogui.screenshot(region=region) if region else pyautogui.screenshot()
-        screenshot = np.array(screenshot)
-        screenshot = cv2.cvtColor(screenshot, cv2.COLOR_RGB2BGR)
-
-        result = cv2.matchTemplate(screenshot, img_needle, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-
-        if max_val >= confidence:
-            x, y = max_loc
-            x += img_needle.shape[1] // 2 + horizontal  
-            y += img_needle.shape[0] // 2 + vertical
-            coordenada(x, y)
+navegador = iniciar_navegador(com_debugging_remoto=True)
 
 
-            if acao == 'clicar':
-                clicar(x, y)
-            elif acao == 'mover_clicar':
-                move_mouse(x, y)
+# aguardar pagina carregar
+WebDriverWait(navegador, 90).until(lambda navegador: navegador.execute_script('return document.readyState') == 'complete')
 
-            return True
-        
-        time.sleep(1)
+# aguardar elemento carregar
+elemento = WebDriverWait(navegador, 15).until(EC.presence_of_element_located(
+                    (By.XPATH, 'exemplo')))
 
-# Exemplo de uso
-procurar_imagem('testeCaptcha.png', acao='mover_clicar')
+# elemento do tipo select
+anoElement = navegador.find_element(By.XPATH, 'lista')
+Select_element = Select(anoElement)
+
+for i in range(10):
+    Select_element.select_by_index(i)
+    selecao = Select_element.options[i].text
+    print(f"selecionado {selecao}")
+
+#trocar de iframe
+navegador.switch_to.default_content()
+iframe = navegador.find_element(By.XPATH, 'iframe Pagina')
+navegador.switch_to.frame(iframe)
+
+xpath = navegador.find_element(By.XPATH, 'iframe Pagina')
+
+
+'''
+o exeucute_script é ate simples de usar
+nesse caso ele esta achando o argumento value q esta la no xpath, e esta trocando ele para o arguments[1], que nesse caso é o '2019'
+após o ; ele esta definindo que o texto que esta sendo visivel ira receber o arguments[2] que é Dois Mil e Dezenove
+
+então ele vai trocar o valor para 2019 e o texto visivel para Dois Mil e Dezenove
+''' 
+
+navegador.execute_script("arguments[0].value = arguments[1]; arguments[0].innerText = arguments[2];", xpath, '2019', 'Dois Mil e Dezenove')
+
