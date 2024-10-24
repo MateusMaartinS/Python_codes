@@ -2,8 +2,7 @@ import pyautogui
 import time
 import random
 import mousekey
-
-
+import pyscreeze
 
 def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60, horizontal=0, vertical=0, acao='clicar', clicks=1, ocorrencia=1):
     mkey = mousekey.MouseKey()
@@ -64,7 +63,7 @@ def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60
                     print(f'A ocorrência {ocorrencia} não foi encontrada.')
                     return False
 
-        except pyautogui.ImageNotFoundException:
+        except pyscreeze.ImageNotFoundException:
             pass
         time.sleep(1)
 
