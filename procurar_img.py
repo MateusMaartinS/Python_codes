@@ -1,12 +1,12 @@
-import pyautogui
-import time
-import random
-import mousekey
-import pyscreeze
+import pyautogui        # pip install pyautogui
+import time             # (biblioteca padrão do Python)
+import random           # (biblioteca padrão do Python)
+import mousekey         # pip install mousekey
+import pyscreeze        # pip install pyscreeze
 
-def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60, horizontal=0, vertical=0, acao='clicar', clicks=1, ocorrencia=1):
+def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, horizontal=0, vertical=0, dx=0, dy=0, acao='clicar', clicks=1, ocorrencia=1, delay_tentativa=1):
     mkey = mousekey.MouseKey()
-    
+
     def click(x, y):
         pyautogui.click(x, y)
 
@@ -16,7 +16,7 @@ def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60
     def coordenada(x, y):
         print(f'Coordenadas da imagem: ({x}, {y})')
 
-    def move_mouse(x, y, variationx=(-5, 5), variationy=(-5, 5), up_down=(0.2, 0.3), min_variation=-10, max_variation=10, use_every=4, sleeptime=(0.009, 0.019), linear=90):
+    def moveMouse(x, y, variationx=(-5, 5), variationy=(-5, 5), up_down=(0.2, 0.3), min_variation=-10, max_variation=10, use_every=4, sleeptime=(0.009, 0.019), linear=90):
         mkey.left_click_xy_natural(
             int(x) - random.randint(*variationx),
             int(y) - random.randint(*variationy),
@@ -29,13 +29,20 @@ def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60
             percent=linear,
         )
 
-    acoes_validas = ['clicar', 'mover_clicar']
+    def clickDrag(x, y, dx, dy):
+        pyautogui.moveTo(x, y)
+        pyautogui.mouseDown()
+        pyautogui.moveTo(x + dx, y + dy, duration=0.5)
+        pyautogui.mouseUp()
 
-    if acao not in acoes_validas:
-        raise ValueError(f"Ação inválida: '{acao}'. Escolha entre {acoes_validas}.")
+
+    acoesValidas = ['clicar', 'mover clicar', 'clicar arrastar']
+
+    if acao not in acoesValidas:
+        raise ValueError(f"Ação inválida: '{acao}'. Escolha entre {acoesValidas}.")
 
     tentativas = 0
-    while tentativas < max_tentativas:
+    while tentativas < maxTentativas:
         tentativas += 1
         try:
             imag = list(pyautogui.locateAllOnScreen(nome_arquivo, confidence=confidence, region=region))
@@ -47,17 +54,22 @@ def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60
                     x += horizontal
                     y += vertical
 
-                    if acao == 'clicar':
-                        match clicks:
-                            case 0:
-                                coordenada(x, y)
-                            case 1:
-                                click(x, y)
-                            case 2:
-                                doubleClick(x, y)
+                    match acao:
+                        case 'clicar':
+                            match clicks:
+                                case 0:
+                                    coordenada(x, y)
+                                case 1:
+                                    click(x, y)
+                                case 2:
+                                    doubleClick(x, y)
 
-                    elif acao == 'mover_clicar':
-                        move_mouse(x, y)
+                        case 'mover clicar':
+                            moveMouse(x, y)
+                        
+                        case 'clicar arrastar':
+                            clickDrag(x, y, dx, dy)
+
                     return True
                 else:
                     print(f'A ocorrência {ocorrencia} não foi encontrada.')
@@ -65,9 +77,9 @@ def procurar_imagem(nome_arquivo, confidence=0.8, region=None, max_tentativas=60
 
         except pyscreeze.ImageNotFoundException:
             pass
-        time.sleep(1)
+        time.sleep(delay_tentativa)
 
-    print(f'Imagem não encontrada após {max_tentativas} tentativas.')
+    print(f'Imagem não encontrada após {maxTentativas} tentativas.')
     return False
 
-procurar_imagem('testeCaptcha.png', acao='mover_clicar')
+procurar_imagem('teste.png', acao='mover clicar')
