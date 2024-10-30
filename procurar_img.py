@@ -1,7 +1,7 @@
 import pyautogui        # pip install pyautogui
 import time             # (biblioteca padrão do Python)
 import random           # (biblioteca padrão do Python)
-import mousekey         # pip install mousekey
+import mousekey         # pip install mousekey - https://github.com/hansalemaos/mousekey
 import pyscreeze        # pip install pyscreeze
 
 def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, horizontal=0, vertical=0, dx=0, dy=0, acao='clicar', clicks=1, ocorrencia=1, delay_tentativa=1):
