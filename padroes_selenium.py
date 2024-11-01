@@ -39,6 +39,7 @@ navegador = iniciar_navegador(com_debugging_remoto=True)
 WebDriverWait(navegador, 90).until(lambda navegador: navegador.execute_script('return document.readyState') == 'complete')
 
 # aguardar elemento carregar
+#                                                visibility_of_element_located
 elemento = WebDriverWait(navegador, 15).until(EC.presence_of_element_located(
                     (By.XPATH, 'exemplo')))
 
