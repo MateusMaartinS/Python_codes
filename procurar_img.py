@@ -82,4 +82,4 @@ def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, 
     print(f'Imagem não encontrada após {maxTentativas} tentativas.')
     return False
 
-procurar_imagem('teste.png', acao='mover clicar')
+procurarImagem('teste.png', acao='mover clicar')
