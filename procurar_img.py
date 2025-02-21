@@ -3,8 +3,9 @@ import time             # (biblioteca padrão do Python)
 import random           # (biblioteca padrão do Python)
 import mousekey         # pip install mousekey - https://github.com/hansalemaos/mousekey
 import pyscreeze        # pip install pyscreeze
+from PIL import Image   # pip install pillow
 
-def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, horizontal=0, vertical=0, dx=0, dy=0, acao='clicar', clicks=1, ocorrencia=1, delay_tentativa=1):
+def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, horizontal=0, vertical=0, dx=0, dy=0, acao='clicar', clicks=1, ocorrencia=1, delay_tentativa=1, usarRedimensionamento=False, resolucaoOriginal=(1920, 1080)):
     mkey = mousekey.MouseKey()
 
     def click(x, y):
@@ -14,7 +15,7 @@ def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, 
         pyautogui.doubleClick(x, y)
 
     def coordenada(x, y):
-        print(f'Coordenadas da imagem: ({x}, {y})')
+        print(f'Coordenadas da imagem {nome_arquivo}: ({x}, {y})')
 
     def moveMouse(x, y, variationx=(-5, 5), variationy=(-5, 5), up_down=(0.2, 0.3), min_variation=-10, max_variation=10, use_every=4, sleeptime=(0.009, 0.019), linear=90):
         mkey.left_click_xy_natural(
@@ -35,6 +36,41 @@ def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, 
         pyautogui.moveTo(x + dx, y + dy, duration=0.5)
         pyautogui.mouseUp()
 
+    def redimensionarImagem(caminhoImagem, resolucaoOriginal=(1920, 1080), caminhoSaida=None):
+        larguraAtual, alturaAtual = pyautogui.size()
+        larguraOriginal, alturaOriginal = resolucaoOriginal
+
+        try:
+            with Image.open(caminhoImagem) as img:
+                escalaLargura = larguraAtual / larguraOriginal
+                escalaAltura = alturaAtual / alturaOriginal
+                
+                escala = min(escalaLargura, escalaAltura)
+
+                larguraNova = int(img.size[0] * escala)
+                alturaNova = int(img.size[1] * escala)
+
+                imgRedimensionada = img.resize((larguraNova, alturaNova), Image.Resampling.LANCZOS)
+
+                if not caminhoSaida:
+                    caminhoSaida = f'redimensionado_{caminhoImagem}'
+
+                imgRedimensionada.save(caminhoSaida)
+                print(f"Imagem redimensionada salva em: {caminhoSaida}")
+                return caminhoSaida
+        except FileNotFoundError:
+            print(f"Arquivo não encontrado: {caminhoImagem}")
+            return None
+        except Exception as e:
+            print(f"Erro ao redimensionar a imagem: {e}")
+            return None
+
+    if usarRedimensionamento:
+        resolucaoAtual = pyautogui.size()
+        nome_arquivo = redimensionarImagem(nome_arquivo, resolucaoOriginal, resolucaoAtual)
+        if not nome_arquivo:
+            print(f"Erro ao redimensionar a imagem {nome_arquivo}. Verifique o arquivo.")
+            return False
 
     acoesValidas = ['clicar', 'mover clicar', 'clicar arrastar']
 
@@ -79,7 +115,8 @@ def procurarImagem(nome_arquivo, confidence=0.8, region=None, maxTentativas=60, 
             pass
         time.sleep(delay_tentativa)
 
-    print(f'Imagem não encontrada após {maxTentativas} tentativas.')
+    print(f'Imagem {nome_arquivo} não encontrada após {maxTentativas} tentativas.')
     return False
+
 
 procurarImagem('teste.png', acao='mover clicar')
