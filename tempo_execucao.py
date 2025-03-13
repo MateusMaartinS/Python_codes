@@ -1,20 +1,34 @@
 from datetime import datetime
 
 
-def calcular_tempo_execucao(func, *args, **kwargs):
-    tempo_inicio = datetime.now()
+def calcularTempoExecucao(func, *args, corLog='default', **kwargs):
+    cores = {
+        'default': '\033[0m',
+        'vermelho': '\033[91m',
+        'verde': '\033[92m',
+        'amarelo': '\033[93m',
+        'azul': '\033[94m',
+        'magenta': '\033[95m',
+        'ciano': '\033[96m',
+    }
+    corEscolhida = cores.get(corLog, cores['default'])
+    
+    tempoInicio = datetime.now()
     resultado = func(*args, **kwargs)
-    tempo_fim = datetime.now()
-    tempo_execucao = tempo_fim - tempo_inicio
-    
-    # formatar texto
-    largura_total = 28
-    largura_interna = largura_total - 11
+    tempoFim = datetime.now()
+    tempoExecucao = str(tempoFim - tempoInicio)
 
-    linha_superior = "|¯¯ TEMPO DE EXECUÇÃO ¯¯|".center(largura_total)
-    linha_inferior = f"|__ {str(tempo_execucao).center(largura_interna)} __|".center(largura_total)
+    larguraTotal = max(len(tempoExecucao) + 8, 30)  
+    titulo = " TEMPO DE EXECUÇÃO "
     
-    print(linha_superior)
-    print(linha_inferior)
+    linhaSuperior = f"{corEscolhida}╭{'─' * (larguraTotal - 2)}╮"
+    linhaTitulo = f"│{titulo.center(larguraTotal - 2)}│"
+    linhaMeio = f"│{tempoExecucao.center(larguraTotal - 2)}│"
+    linhaInferior = f"╰{'─' * (larguraTotal - 2)}╯\033[0m"
+    
+    print(linhaSuperior)
+    print(linhaTitulo)
+    print(linhaMeio)
+    print(linhaInferior)
     
     return resultado
